@@ -6,34 +6,46 @@ let ambientOn = false;
 
 function toggleAmbient() {
   const button = $("sound-button");
+
   if (ambientOn) {
     clearInterval(ambientTimer);
     ambientOn = false;
     button.classList.remove("active");
     button.setAttribute("aria-pressed", "false");
-    button.textContent = "♫ AMBIENTE";
+    button.textContent = "♫ INDIE ROCK";
     return;
   }
 
   ambientContext = ambientContext || new (window.AudioContext || window.webkitAudioContext)();
-  const notes = [146.83, 174.61, 220, 261.63, 293.66];
+  const progression = [164.81, 196, 220, 146.83];
   let step = 0;
-  const playNote = () => {
+
+  const hit = (frequency, type, volume, duration) => {
     const oscillator = ambientContext.createOscillator();
     const gain = ambientContext.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = notes[step++ % notes.length];
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
     gain.gain.setValueAtTime(0.0001, ambientContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.045, ambientContext.currentTime + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ambientContext.currentTime + 1.2);
+    gain.gain.exponentialRampToValueAtTime(volume, ambientContext.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ambientContext.currentTime + duration);
     oscillator.connect(gain).connect(ambientContext.destination);
     oscillator.start();
-    oscillator.stop(ambientContext.currentTime + 1.25);
+    oscillator.stop(ambientContext.currentTime + duration + 0.05);
   };
-  playNote();
-  ambientTimer = setInterval(playNote, 1300);
+
+  const playIndieBar = () => {
+    const root = progression[step++ % progression.length];
+    hit(root / 2, "triangle", 0.06, 0.52);
+    hit(root, "sawtooth", 0.028, 0.23);
+    setTimeout(() => hit(root * 1.25, "sawtooth", 0.022, 0.2), 230);
+    setTimeout(() => hit(root * 1.5, "sawtooth", 0.018, 0.2), 460);
+    setTimeout(() => hit(root, "sine", 0.04, 0.45), 700);
+  };
+
+  playIndieBar();
+  ambientTimer = setInterval(playIndieBar, 950);
   ambientOn = true;
   button.classList.add("active");
   button.setAttribute("aria-pressed", "true");
-  button.textContent = "❚❚ PAUSAR";
+  button.textContent = "❚❚ PAUSAR ROCK";
 }
